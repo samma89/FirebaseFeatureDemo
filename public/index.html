@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to Firebase Hosting</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/6.1.0/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/6.1.0/firebase-auth.js"></script>
+    <script defer src="/__/firebase/6.1.0/firebase-database.js"></script>
+    <script defer src="/__/firebase/6.1.0/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/6.1.0/firebase-storage.js"></script>
+    <script defer src="/__/firebase/6.1.0/firebase-firestore.js"></script>
+
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+    <script src="/app.js"></script>
+
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css"
+    />
+    <link type="text/css" rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="loading">
+      <h2>Loading</h2>
+    </div>
+    <div id="login">
+      <div id="firebaseui-auth-container"></div>
+    </div>
+    <div id="logged">
+      <div id="album">
+        <h3>Your Photos</h3>
+        <div id="photo_grid" class="group">
+          <div class="photo_container">
+            <div class="img">
+              <img src="/loading.gif" alt="loading-image" />
+            </div>
+            <div class="tags group">
+              <span class="tag">People</span>
+              <span class="tag">Building</span>
+            </div>
+          </div>
+          <div class="photo_container">
+            <div class="img">
+              <img src="/loading.gif" alt="loading-image" />
+            </div>
+            <div class="tags group">
+              <span class="tag">People</span>
+              <span class="tag">Building</span>
+            </div>
+          </div>
+          <div class="photo_container">
+            <div class="img">
+              <img src="/loading.gif" alt="loading-image" />
+            </div>
+            <div class="tags group">
+              <span class="tag">People</span>
+              <span class="tag">Building</span>
+            </div>
+          </div>
+          <div class="photo_container">
+            <div class="img">
+              <img src="/loading.gif" alt="loading-image" />
+            </div>
+            <div class="tags group">
+              <span class="tag">People</span>
+              <span class="tag">Building</span>
+            </div>
+          </div>
+          <div class="photo_container" id="form">
+            <span id="uploadLoader">Loading...</span>
+            <input
+              type="file"
+              name="imageSelector"
+              id="imageSelector"
+              value="Select an image to upload"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

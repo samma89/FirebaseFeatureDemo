@@ -1,0 +1,152 @@
+body {
+  background: #eceff1;
+  color: rgba(0, 0, 0, 0.87);
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.group:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#login,
+#logged,
+.loading {
+  background: white;
+  max-width: 560px;
+  margin: 100px auto 16px;
+  padding: 32px 24px;
+  border-radius: 3px;
+  display: none;
+}
+#login h2 {
+  color: #ffa100;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+#login h1 {
+  font-size: 22px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 16px;
+}
+#login p {
+  line-height: 140%;
+  margin: 16px 0 24px;
+  font-size: 14px;
+}
+#login a {
+  display: block;
+  text-align: center;
+  background: #039be5;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  padding: 16px;
+  border-radius: 4px;
+}
+#login,
+#login a {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* loading styles */
+.loading {
+  display: initial;
+  padding: 0 0;
+}
+.loading h2 {
+  color: #fff;
+  text-align: center;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  font-size: 50px;
+  animation-name: blink;
+  animation-duration: 1.2s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+}
+@keyframes blink {
+  0% {
+    color: #fff;
+  }
+
+  50% {
+    color: #500200;
+  }
+  100% {
+    color: #fff;
+  }
+}
+
+/* album page styles */
+#album{
+    margin: 0 -5px;
+}
+
+#album h3{
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+#photo_grid .photo_container{
+    width: 180px;
+    height: 210px;
+    float: left;
+    margin: 5px 5px;
+    box-shadow: rgba(0,0,0,0.4) 0px 0px 6px;
+    
+}
+
+.photo_container .img{
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 165px;
+  height: 165px;
+  margin: 5px auto;
+  
+}
+
+.img img{
+  display: block;
+  width: 50px;
+  height: 50px;
+  margin: auto;
+  padding-top: 57px;
+  padding-bottom: 58px;
+}
+
+.photo_container .tags{
+  height: 40px;
+}
+
+.tags .tag{
+  font-size: 12px;
+  background: #efefef;
+  display: block;
+  float: left;
+  padding: 3px 4px;
+  margin: 3px;
+  border: 1px solid #cacaca;
+  border-radius: 10px;
+}
+
+
+
+
+
+@media (max-width: 600px) {
+  body,
+  #login {
+    margin-top: 0;
+    background: white;
+    box-shadow: none;
+  }
+  body {
+    border-top: 16px solid #ffa100;
+  }
+}

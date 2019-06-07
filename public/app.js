@@ -1,3 +1,5 @@
+var imageProcessingListenerUnsubscribe;
+
 document.addEventListener("DOMContentLoaded", function() {
   
     firebase.auth().onAuthStateChanged(function(user) {
@@ -45,7 +47,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var imageInput = document.getElementById('imageSelector');
 
     imageInput.addEventListener('change', function(event){
-        debugger;
         for (let i = 0; i < event.target.files.length; i++) {
             const f = event.target.files[i];
             
@@ -60,11 +61,13 @@ document.addEventListener("DOMContentLoaded", function() {
               reader.onload = (function(theFile) {
                 return function(e) {
                   // Render thumbnail.
-                  var placeholder = createPhotoNode(e.target.result, theFile.name, 'imgx_'+ document.querySelectorAll('.photo_container').length)
-                  
+                  var imDivId = 'imgx_'+ document.querySelectorAll('.photo_container').length;
+                  var placeholder = createPhotoNode(e.target.result, imDivId);
+
                   document.getElementById('photo_grid').insertBefore(placeholder, document.getElementById('form'));
+                  placeholder.querySelector('.thumb_loading').style.visibility = 'visible';
   
-                  uploadToStorage(firebase.auth().currentUser.uid, theFile)
+                  uploadToStorage(firebase.auth().currentUser.uid, theFile, imDivId)
                 };
               })(f);
         
@@ -75,40 +78,37 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
-function createPhotoNode(imageURL, filename, nodeId){
-    // <div class="photo_container">
-    //         <div class="img">
-    //           <img src="/loading.gif" alt="loading-image" class="thumb_loading"/>
-    //         </div>
-    //         <div class="tags group">
-    //           <span class="tag">People</span>
-    //           <span class="tag">Building</span>
-    //         </div>
-    //       </div>
+function createPhotoNode(imageURL, nodeId, tags){
     var cont = document.createElement('div');
     cont.id = nodeId;
     cont.className = 'photo_container';
     var imgCont = document.createElement('div');
     imgCont.className = 'img';
     imgCont.style.backgroundImage = 'url('+imageURL+')';
-    imgCont.append('<img src="/loading.gif" alt="loading-image" class="thumb_loading"/>');
+    var loadingImg = document.createElement('img');
+    loadingImg.className = 'thumb_loading';
+    loadingImg.src = '/loading.gif';
+    loadingImg.alt = 'loading-image';
+    imgCont.appendChild(loadingImg);
     cont.appendChild(imgCont);
-    var tagCont = document.createElement('div');
-    tagCont.className = 'tags group';
-    cont.appendChild(tagCont);
+    
+    if(tags) {
+        cont.appendChild(createTags(tags));
+    }
 
     return cont;
 }
 
-function setCookie(key, value) {
-  var expires = new Date();
-  expires.setTime(expires.getTime() + 1 * 24 * 60 * 60 * 1000);
-  document.cookie = key + "=" + value + ";expires=" + expires.toUTCString();
-}
-
-function getCookie(key) {
-  var keyValue = document.cookie.match("(^|;) ?" + key + "=([^;]*)(;|$)");
-  return keyValue ? keyValue[2] : null;
+function createTags(tags) {
+    var tagCont = document.createElement('div');
+    tagCont.className = 'tags group';
+    for (var i = 0; i < tags.length; i++) {
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerText = tags[i];
+        tagCont.appendChild(tag);
+    }
+    return tagCont;
 }
 
 function loadAlbum() {
@@ -117,21 +117,16 @@ function loadAlbum() {
     var userRef = db.collection('users').doc(user.uid)
     
     userRef.get().then(function(userDoc){
-        debugger
         if(userDoc.exists) {
             //user is registered already. retrieve his album data
             console.log(userDoc.data())
-            userRef.collection('album').get().then(function(snapshot){
-                debugger
+            userRef.collection('myAlbum').get().then(function(snapshot){
                 document.querySelector('.loading').style.display = 'none';
                 document.getElementById('logged').style.display = 'block';
                 if(snapshot.empty){
                     // no images uploaded   
                 }else{
-                    snapshot.forEach(function(doc){
-                        debugger
-                        console.log(doc.data());
-                    });
+                    populateAlbum(snapshot);
                 }
             })
             .catch(function(err){
@@ -147,7 +142,7 @@ function loadAlbum() {
                 photoUrl: user.photoUrl || ''
             }).then(function(newUser){
                 document.querySelector('.loading').style.display = 'none';
-                document.getElementById('album').style.display = 'block';
+                document.getElementById('logged').style.display = 'block';
             })
             .catch(function(err){
                 console.log(err);
@@ -161,7 +156,7 @@ function loadAlbum() {
     });
 }
 
-function uploadToStorage(userId, file) {
+function uploadToStorage(userId, file, imageDivId) {
     var fileName = Math.round(Math.random()*1000)+'-'+file.name;
     var ref = firebase.storage().ref().child(userId+'/'+fileName);
     ref.put(file).then(function(snapshot){
@@ -171,13 +166,35 @@ function uploadToStorage(userId, file) {
             path: snapshot.ref.location.path_
         })
         .then(function(docRef){
-            debugger;
+            document.getElementById(imageDivId).id = 'imgx_'+docRef.id;
             ref.updateMetadata({
                 customMetadata: {
                     objId: docRef.id
                 }
             }).then(function(meta){
-                debugger
+                //removing the previous listeners, if any
+                if(imageProcessingListenerUnsubscribe) imageProcessingListenerUnsubscribe();
+
+                //attaching a db listener to the image node in firestore
+                imageProcessingListenerUnsubscribe = firebase.firestore().doc('users/'+userId+'/myAlbum/'+docRef.id)
+                    .onSnapshot(function(imageDoc){
+                        var imNode = document.getElementById('imgx_'+docRef.id);
+                        //hide the loader on image node
+                        
+                        console.log(imageDoc.data());
+                        if(imageDoc.data().tags) {
+                            imNode.querySelector('.thumb_loading').style.visibility = 'hidden';
+                            var tagCont = createTags(imageDoc.data().tags);
+                            imNode.appendChild(tagCont);
+                            imageProcessingListenerUnsubscribe();
+                        }
+
+                        
+                    },
+                    function(error){
+                        console.log(error);
+                        imageProcessingListenerUnsubscribe();
+                    });
             }).catch(function(err){
                 console.log(err);
             });
@@ -185,11 +202,35 @@ function uploadToStorage(userId, file) {
         .catch(function(err){
             console.log(err);
         });
-        debugger
     }).catch(function(err) {
-
+        console.log(err);
     });
 }
 
-//Constants
-var AUTH_COOKIE_KEY = "key-auth-t";
+function populateAlbum(dataset) {
+    var container = document.getElementById('photo_grid');
+    dataset.forEach(function(doc){
+        var data = doc.data()
+        console.log(data);
+        var placeholder = createPhotoNode('', 'imgx_'+doc.id, data.tags);
+        placeholder.querySelector('.thumb_loading').style.visibility = 'visible';
+        container.insertBefore(placeholder, document.getElementById('form'));
+        downloadImageIntoView('imgx_'+doc.id, data.path);
+    });
+}
+
+function downloadImageIntoView(viewId, imagePath) {
+    var ref = firebase.storage().ref(imagePath);
+    ref.getDownloadURL().then(function(url){
+        var imageBg = new Image();
+        imageBg.onload = function(e){
+            document.getElementById(viewId).querySelector('.img').style.backgroundImage = 'url('+url+')';
+            document.getElementById(viewId).querySelector('.thumb_loading').style.visibility = 'hidden';
+        };
+        imageBg.src = url;
+        
+    })
+    .catch(function(error) {
+        console.log(err);
+    });
+}

@@ -12,19 +12,32 @@ admin.initializeApp();
 // });
 
 
-exports.onImageStored = functions.storage.object().onMetadataUpdate(async (object) => {
-    console.log(object);
+exports.onImageStored = functions.storage.object().onMetadataUpdate(async (imageObj) => {
+    console.log(imageObj);
 
     // Creates a client
     const client = new vision.ImageAnnotatorClient();
+    const imagePath = `gs://${imageObj.bucket}/${imageObj.name}`
 
-    const [result] = await client.landmarkDetection(`gs://${object.bucket}/${object.name}`);
-    const [result2] = await client.faceDetection(`gs://${object.bucket}/${object.name}`);
-    const landmarks = result.landmarkAnnotations;
-    const faces = result2.faceAnnotations;
+    const [landmarkResult] = await client.landmarkDetection(imagePath);
+    const [objectResult] = await client.objectLocalization(imagePath);
+    const landmarks = landmarkResult.landmarkAnnotations;
+    const objects = objectResult.localizedObjectAnnotations;
+
+    const tags = [];
     console.log('Landmarks:');
-    landmarks.forEach(landmark => console.log(landmark));
-    console.log('faces:');
-    console.log(faces);
-    return result;
+    landmarks.forEach(landmark => {
+        console.log(landmark.description);
+        tags.push(landmark.description);
+    });
+    console.log('objects:');
+    objects.forEach(object => {
+        console.log(object.name);
+        tags.push(object.name);
+    });
+
+    //to get rid of duplicates
+    const uniqTags = [...new Set(tags)];
+    
+    return admin.firestore().doc(`users/${imageObj.name.split('/')[0]}/myAlbum/${imageObj.metadata.objId}`).update({tags: uniqTags});
 });
